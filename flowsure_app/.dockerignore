@@ -1,0 +1,24 @@
+# Secrets — must never end up in the image
+app/.env
+.env
+
+# Python cache — generated files, not source
+app/__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Old in-app copies replaced by root-level files
+app/requirements.txt
+app/README.md
+
+# Dev-only directories not needed in the container
+.git/
+.github/
+.venv/
+notebooks/
+tests/
+
+# Local/OS noise
+.DS_Store
+*.md

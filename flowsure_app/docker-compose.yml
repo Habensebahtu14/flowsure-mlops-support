@@ -1,0 +1,32 @@
+# Docker Compose — FlowSure MLOps
+# No `version:` key — obsolete in Compose Spec (Docker Compose v2+)
+
+services:
+  flowsure:
+    # ── Build ───────────────────────────────────────────────────────────────────
+    build:
+      context: .          # project root is the build context
+      dockerfile: Dockerfile
+    image: flowsure:latest # tag the built image for local reuse
+
+    # ── Network ─────────────────────────────────────────────────────────────────
+    ports:
+      - "8501:8501"       # host:container — Streamlit default port
+
+    # ── Restart policy ──────────────────────────────────────────────────────────
+    # Restart on crash, but respect a manual `docker compose stop`
+    restart: unless-stopped
+
+    # ── Health check ────────────────────────────────────────────────────────────
+    # Streamlit exposes /_stcore/health — returns HTTP 200 when the app is ready.
+    # Uses Python (already in the image) so no extra system packages are needed.
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')"
+      interval: 30s     # check every 30 s once healthy
+      timeout: 10s      # fail a single check if no response within 10 s
+      retries: 3        # mark unhealthy after 3 consecutive failures
+      start_period: 30s # grace period while the app loads the ONNX model

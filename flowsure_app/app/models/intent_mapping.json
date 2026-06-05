@@ -1,0 +1,110 @@
+{
+  "create_account": [
+    "ACCOUNT",
+    "low"
+  ],
+  "delete_account": [
+    "ACCOUNT",
+    "low"
+  ],
+  "edit_account": [
+    "ACCOUNT",
+    "low"
+  ],
+  "recover_password": [
+    "ACCOUNT",
+    "low"
+  ],
+  "registration_problems": [
+    "ACCOUNT",
+    "medium"
+  ],
+  "switch_account": [
+    "ACCOUNT",
+    "low"
+  ],
+  "check_cancellation_fee": [
+    "CANCEL",
+    "high"
+  ],
+  "contact_customer_service": [
+    "CONTACT",
+    "low"
+  ],
+  "contact_human_agent": [
+    "CONTACT",
+    "low"
+  ],
+  "delivery_options": [
+    "DELIVERY",
+    "low"
+  ],
+  "delivery_period": [
+    "DELIVERY",
+    "medium"
+  ],
+  "complaint": [
+    "FEEDBACK",
+    "high"
+  ],
+  "review": [
+    "FEEDBACK",
+    "low"
+  ],
+  "check_invoice": [
+    "INVOICE",
+    "low"
+  ],
+  "get_invoice": [
+    "INVOICE",
+    "low"
+  ],
+  "cancel_order": [
+    "ORDER",
+    "high"
+  ],
+  "change_order": [
+    "ORDER",
+    "low"
+  ],
+  "place_order": [
+    "ORDER",
+    "low"
+  ],
+  "track_order": [
+    "ORDER",
+    "low"
+  ],
+  "check_payment_methods": [
+    "PAYMENT",
+    "low"
+  ],
+  "payment_issue": [
+    "PAYMENT",
+    "high"
+  ],
+  "check_refund_policy": [
+    "REFUND",
+    "medium"
+  ],
+  "get_refund": [
+    "REFUND",
+    "medium"
+  ],
+  "track_refund": [
+    "REFUND",
+    "medium"
+  ],
+  "change_shipping_address": [
+    "SHIPPING",
+    "low"
+  ],
+  "set_up_shipping_address": [
+    "SHIPPING",
+    "low"
+  ],
+  "newsletter_subscription": [
+    "SUBSCRIPTION",
+    "low"
+  ]
+}

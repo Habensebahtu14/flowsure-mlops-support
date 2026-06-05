@@ -1,0 +1,106 @@
+# FlowSure CI/CD Pipeline
+#
+# Job 1 (test)       — runs on every push and pull request to main.
+# Job 2 (build-push) — runs only when job 1 passes AND the event is a direct
+#                      push to main (not a PR). This ensures we never publish
+#                      an image from an unreviewed branch.
+#
+# Repository layout:
+#   flowsure-mlops-support/   ← git + GitHub repo root
+#   └── flowsure_app/         ← all app code, Dockerfile, tests, requirements
+#       ├── app/              ← classifier.py, app.py, models/
+#       ├── tests/            ← pytest test suite
+#       ├── requirements.txt
+#       └── Dockerfile
+
+name: CI/CD — FlowSure Edge Classifier
+
+# ── Triggers ───────────────────────────────────────────────────────────────────
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ══════════════════════════════════════════════════════════════════════════════
+# JOB 1 — Run the pytest test suite
+# ══════════════════════════════════════════════════════════════════════════════
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    # All `run:` steps in this job execute from the app subdirectory so that
+    # requirements.txt and tests/ are resolved at the correct relative paths.
+    defaults:
+      run:
+        working-directory: flowsure_app
+
+    steps:
+      # ── 1. Check out the full repository ─────────────────────────────────────
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Python 3.11 (matches the Dockerfile base image) ────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ── 3. Install app dependencies + pytest ─────────────────────────────────
+      # pytest is a dev-only dependency so it is not in requirements.txt;
+      # we install it explicitly here alongside the production packages.
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest
+
+      # ── 4. Run the full test suite ────────────────────────────────────────────
+      # -v prints each test name and its pass/fail status in the Actions log.
+      - name: Run pytest
+        run: pytest tests/ -v
+
+# ══════════════════════════════════════════════════════════════════════════════
+# JOB 2 — Build the Docker image and push it to Docker Hub
+# ══════════════════════════════════════════════════════════════════════════════
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    # Only run this job after the test job passes.
+    needs: test
+
+    # Only publish on a direct push to main — skip for pull requests.
+    # A PR triggers the test job (for feedback) but never publishes an image.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      # ── 1. Check out the full repository ─────────────────────────────────────
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Docker Buildx ───────────────────────────────────────────────
+      # Buildx is the modern Docker build engine; required by build-push-action.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ── 3. Authenticate with Docker Hub ──────────────────────────────────────
+      # Credentials are stored as GitHub repository secrets — never hardcoded.
+      # Create these secrets at:
+      # GitHub repo → Settings → Secrets and variables → Actions → New secret
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ── 4. Build and push the image with two tags ─────────────────────────────
+      # :latest   — always points to the most recent successful build on main
+      # :<sha>    — immutable tag tied to the exact commit (enables rollbacks)
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          # The Dockerfile lives inside the flowsure_app subdirectory.
+          context: ./flowsure_app
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/flowsure:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/flowsure:${{ github.sha }}

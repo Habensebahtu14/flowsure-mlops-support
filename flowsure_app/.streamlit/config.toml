@@ -1,0 +1,5 @@
+[server]
+folderWatchBlacklist = ["transformers", "sentence_transformers", "torch", "torchvision"]
+
+[logger]
+level = "error"
