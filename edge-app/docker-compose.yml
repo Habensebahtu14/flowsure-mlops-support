@@ -13,6 +13,12 @@ services:
     ports:
       - "8501:8501"       # host:container — Streamlit default port
 
+    # ── Persistent logs (optional) ──────────────────────────────────────────────
+    # The app writes prediction logs to /app/logs/predictions.jsonl. Uncomment the
+    # mount below to persist them on the host so they survive container restarts:
+    # volumes:
+    #   - ./logs:/app/logs
+
     # ── Restart policy ──────────────────────────────────────────────────────────
     # Restart on crash, but respect a manual `docker compose stop`
     restart: unless-stopped

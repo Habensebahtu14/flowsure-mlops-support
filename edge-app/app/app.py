@@ -6,6 +6,7 @@ import plotly.graph_objects as go  # pyright: ignore[reportMissingImports]
 import streamlit as st
 
 from classifier import IntentClassifier
+from monitoring import log_event, log_prediction
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -167,6 +168,11 @@ if "inference_times" not in st.session_state:
 if "input_text" not in st.session_state:
     st.session_state.input_text = ""
 
+# Log app startup once per session (Streamlit reruns the script on every action).
+if "startup_logged" not in st.session_state:
+    log_event(f"App started — model loaded ({clf.num_intents} intents)")
+    st.session_state.startup_logged = True
+
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### 🛡️ FlowSure")
@@ -258,10 +264,12 @@ with tab1:
     if classify_btn:
         if not text_input.strip():
             st.warning("Please enter a customer message before classifying.")
+            log_event("Empty input rejected", "warning")
         else:
             with st.spinner("Running inference…"):
                 result = clf.predict(text_input)
             st.session_state.inference_times.append(result["inference_time_ms"])
+            log_prediction(result, len(text_input.strip()))
 
             priority = result["priority"]
             badge_cls = f"badge-{priority}"
@@ -362,11 +370,21 @@ with tab2:
             st.warning("No valid texts found.")
             st.stop()
 
+        # Keep only non-empty texts: predict_batch skips empty strings, so leaving
+        # them in would misalign texts/results (wrong rows in the table and logs).
+        texts = [t for t in texts if t.strip()]
+        if not texts:
+            st.warning("No valid texts found.")
+            st.stop()
+
         with st.spinner(f"Classifying {len(texts)} messages…"):
             results = clf.predict_batch(texts)
             st.session_state.inference_times.extend(
                 [r["inference_time_ms"] for r in results]
             )
+            # Log every predicted ticket (text length only, never raw text).
+            for text, r in zip(texts, results):
+                log_prediction(r, len(text.strip()))
 
         df = pd.DataFrame(
             [

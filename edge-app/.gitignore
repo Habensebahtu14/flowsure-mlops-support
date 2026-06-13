@@ -1,0 +1,10 @@
+# Prediction / monitoring logs — data, not code
+logs/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / tooling
+.DS_Store
+.pytest_cache/
