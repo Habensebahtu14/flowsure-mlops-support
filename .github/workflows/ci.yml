@@ -7,7 +7,7 @@
 #
 # Repository layout:
 #   flowsure-mlops-support/   ← git + GitHub repo root
-#   └── flowsure_app/         ← all app code, Dockerfile, tests, requirements
+#   └── edge-app/         ← all app code, Dockerfile, tests, requirements
 #       ├── app/              ← classifier.py, app.py, models/
 #       ├── tests/            ← pytest test suite
 #       ├── requirements.txt
@@ -34,7 +34,7 @@ jobs:
     # requirements.txt and tests/ are resolved at the correct relative paths.
     defaults:
       run:
-        working-directory: flowsure_app
+        working-directory: edge-app
 
     steps:
       # ── 1. Check out the full repository ─────────────────────────────────────
@@ -104,8 +104,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          # The Dockerfile lives inside the flowsure_app subdirectory.
-          context: ./flowsure_app
+          # The Dockerfile lives inside the edge-app subdirectory.
+          context: ./edge-app
           push: true
           # Build for both Intel/AMD servers (amd64) and Apple Silicon Macs (arm64).
           # Buildx + QEMU emulates ARM64 on the AMD64 runner and pushes a single
